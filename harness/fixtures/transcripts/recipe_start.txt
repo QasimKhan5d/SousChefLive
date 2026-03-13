@@ -1,0 +1,2 @@
+cook: Chef, I have chicken thighs, garlic, and butter.
+chef: Great! Let's make garlic butter chicken thighs. Get your pan ready. I'll walk you through the whole thing.

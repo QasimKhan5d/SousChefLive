@@ -1,0 +1,26 @@
+id: audio_playback_failure
+name: "Audio playback failure — transcript fallback"
+description: >
+  AudioContext fails to initialize (e.g. no audio output device).
+  The app should still display transcripts so the cook can read
+  the agent's guidance.
+tier: [system]
+judge_critical: false
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+
+browser_config:
+  block_audio_context: true
+
+fake_script:
+  - type: output_transcription
+    text: "Hello! I'm SousChef. What are we cooking today?"
+  - type: turn_complete
+
+expected:
+  frontend:
+    - transcript_updated
+  dom:
+    - transcript_body_has_entries: true

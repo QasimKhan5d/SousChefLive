@@ -1,0 +1,32 @@
+id: flip_alert
+name: "Flip alert — timer pre-alert and expiry fire correctly"
+description: >
+  Timer is set with demo_speed on; pre-alert at 80% and final alert at 100%
+  both inject SYSTEM text and emit state_update events.
+tier: [integration, system, live]
+judge_critical: true
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+
+fake_script:
+  - type: tool_call
+    name: set_timer
+    args:
+      duration_seconds: 10
+      label: "sear_side_1"
+    id: fc_timer_flip_001
+  - type: turn_complete
+
+demo_speed: true
+
+expected:
+  events:
+    - timer_scheduled
+    - timer_prealert_fired
+    - timer_expired
+  text_queue_contains:
+    - "80%"
+    - "expired"
+  latency_budget_ms: 5000

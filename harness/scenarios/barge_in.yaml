@@ -1,0 +1,31 @@
+id: barge_in_interrupt
+name: "Barge-in interrupt — cook interrupts agent mid-speech"
+description: >
+  Agent is speaking (audio chunks flowing), cook interrupts,
+  server sends interrupt event, frontend stops playback.
+tier: [integration, system, live]
+judge_critical: true
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+
+fake_script:
+  - type: audio
+    data: "AAAA"
+  - type: audio
+    data: "BBBB"
+  - type: interrupted
+  - type: turn_complete
+
+client_messages:
+  - type: audio
+    data_bytes: 200
+
+expected:
+  events:
+    - audio_out_chunk
+    - interrupt_received
+    - turn_complete
+  frontend:
+    - audio_playback_interrupted

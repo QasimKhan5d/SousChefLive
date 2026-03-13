@@ -1,0 +1,3 @@
+https://medium.com/google-cloud/adk-bidi-streaming-a-visual-guide-to-real-time-multimodal-ai-agent-development-62dd08c81399?postPublishedType=repub
+https://google.github.io/adk-docs/streaming/
+https://google.github.io/adk-docs/streaming/dev-guide/part1/

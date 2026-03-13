@@ -1,0 +1,34 @@
+id: reconnect_restore
+name: "Reconnect restore — session state survives disconnect"
+description: >
+  First connection sets recipe and step, then disconnects.
+  Second connection with same session_id rebuilds state and sends
+  reconnect primer text containing recipe + step + active timers.
+tier: [integration, deploy]
+judge_critical: true
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+
+phase_1:
+  fake_script:
+    - type: tool_call
+      name: update_recipe
+      args:
+        recipe_name: "garlic chicken"
+      id: fc_recipe_r01
+    - type: tool_call
+      name: update_cooking_step
+      args:
+        step_name: sear_side_1
+      id: fc_step_r01
+    - type: turn_complete
+
+phase_2:
+  expected:
+    reconnect_primer_contains:
+      - "garlic chicken"
+      - "sear_side_1"
+    events:
+      - reconnect_primer_sent

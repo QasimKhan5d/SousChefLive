@@ -1,0 +1,11 @@
+{
+  "name": "SousChef Live",
+  "description": "A real-time AI sous-chef using Gemini Live API on Cloud Run.",
+  "hooks": {
+    "prebuild": {
+      "commands": [
+        "gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com --project $GOOGLE_CLOUD_PROJECT"
+      ]
+    }
+  }
+}

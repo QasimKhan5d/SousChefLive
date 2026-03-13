@@ -1,0 +1,31 @@
+id: pan_not_ready
+name: "Pan not ready — honest multimodal reasoning"
+description: >
+  Cook asks if the pan is hot enough. Agent observes via video and
+  responds honestly that it can't be 100% sure, describes what it sees.
+tier: [system, live]
+judge_critical: true
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+    enable_affective_dialog: true
+
+fake_script:
+  - type: output_transcription
+    text: "I can see the pan, but I'm not seeing any shimmer or smoke yet. Give it another minute — I'll keep watching."
+  - type: audio
+    data: "BBBB"
+  - type: turn_complete
+
+client_messages:
+  - type: text
+    text: "Is the pan hot enough?"
+  - type: image
+    note: "Frame showing cold empty pan"
+
+expected:
+  events:
+    - audio_out_chunk
+    - turn_complete
+  latency_budget_ms: 3000

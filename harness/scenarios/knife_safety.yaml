@@ -1,0 +1,33 @@
+id: knife_safety
+name: "Knife safety — proactive visual correction"
+description: >
+  Agent observes unsafe knife technique via video and proactively
+  interrupts to correct it without the cook asking.
+tier: [system, live]
+judge_critical: true
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+    enable_affective_dialog: true
+
+fake_script:
+  - type: output_transcription
+    text: "Careful — curl your fingers under when you're cutting. You don't want to catch a fingertip."
+  - type: audio
+    data: "AAAA"
+  - type: turn_complete
+
+client_messages:
+  - type: image
+    note: "Frame showing unsafe knife grip"
+  - type: audio
+    data_bytes: 200
+
+expected:
+  events:
+    - audio_out_chunk
+    - turn_complete
+  frontend:
+    - audio_playback_started
+  latency_budget_ms: 3000

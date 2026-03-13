@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SousChef Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Landing / Permission screen -->
+    <div id="permission-screen" class="screen active">
+      <div class="landing-bg"></div>
+      <div class="permission-content">
+        <div class="logo-lockup">
+          <svg class="logo-icon" width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" stroke="url(#lg)" stroke-width="2.5" fill="none"/>
+            <path d="M14 26c0-6 4-10 6-12s6 6 6 12" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <defs><linearGradient id="lg" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#e94560"/><stop offset="1" stop-color="#ff6b6b"/></linearGradient></defs>
+          </svg>
+          <h1>SousChef <span class="accent">Live</span></h1>
+        </div>
+        <p class="tagline">Your real-time AI sous-chef that sees, hears, and guides you while you cook.</p>
+
+        <div class="feature-badges">
+          <span class="feature-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            Real-time Voice
+          </span>
+          <span class="feature-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Live Vision
+          </span>
+          <span class="feature-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Smart Timers
+          </span>
+        </div>
+
+        <button id="btn-start" class="btn-primary">
+          <span class="btn-text">Start Cooking</span>
+          <span class="btn-pulse"></span>
+        </button>
+        <p class="small">Camera &amp; microphone access required</p>
+
+        <div class="powered-by">
+          <span>Powered by</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 4l7.5 13h-15L12 6z"/></svg>
+          <span>Gemini Live API</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main cooking screen -->
+    <div id="cooking-screen" class="screen">
+      <!-- Full-bleed video background -->
+      <video id="camera-feed" autoplay playsinline muted></video>
+
+      <!-- Noise texture overlay -->
+      <div class="texture-overlay"></div>
+
+      <!-- Top bar: chips + live indicator -->
+      <div id="top-bar">
+        <div id="overlay-chips">
+          <div id="chip-recipe" class="chip glass">Recipe: <span id="recipe-text">--</span></div>
+          <div id="chip-step" class="chip glass">Step: <span id="step-text">Idle</span></div>
+          <div id="chip-monitor" class="chip glass">
+            <span id="monitor-dot" class="dot"></span>
+            <span id="monitor-text">Waiting for ingredients</span>
+          </div>
+        </div>
+        <div id="live-indicator">
+          <span class="live-dot"></span>
+          <span class="live-text">LIVE</span>
+        </div>
+      </div>
+
+      <!-- Step progress bar -->
+      <div id="step-progress" class="glass">
+        <div id="step-progress-inner"></div>
+      </div>
+
+      <!-- Speaking indicator / audio waveform -->
+      <div id="speaking-indicator" class="hidden glass">
+        <canvas id="waveform-canvas" width="120" height="32"></canvas>
+        <span>Chef is speaking</span>
+      </div>
+
+      <!-- Timer cards (SVG rings) -->
+      <div id="timer-area"></div>
+
+      <!-- Bottom panel -->
+      <div id="bottom-panel" class="glass">
+        <!-- Session badge with connection bars -->
+        <div id="session-badge">
+          <div id="connection-quality">
+            <div class="signal-bars">
+              <div class="bar bar-1"></div>
+              <div class="bar bar-2"></div>
+              <div class="bar bar-3"></div>
+              <div class="bar bar-4"></div>
+            </div>
+            <span id="badge-rtt">--ms</span>
+          </div>
+          <span id="badge-region">us-central1</span>
+          <span id="badge-session">--</span>
+          <span id="badge-timers">0 timers</span>
+        </div>
+
+        <!-- Controls -->
+        <div id="controls">
+          <button id="btn-stop" class="btn-danger glass">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            Stop
+          </button>
+          <label id="demo-speed-toggle" class="glass">
+            <input type="checkbox" id="checkbox-demo-speed" />
+            <span>Demo 10x</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Transcript panel (chat bubbles) -->
+      <div id="transcript-panel" class="glass">
+        <div id="transcript-header">
+          <span>Transcript</span>
+          <button id="btn-toggle-transcript" class="btn-icon">&#x25BC;</button>
+        </div>
+        <div id="transcript-body"></div>
+      </div>
+
+      <!-- Error banner -->
+      <div id="error-banner" class="hidden">
+        <span id="error-text"></span>
+        <button id="btn-dismiss-error" class="btn-icon">&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

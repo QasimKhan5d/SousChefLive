@@ -1,0 +1,25 @@
+id: tool_failure
+name: "Tool failure — graceful degradation on tool error"
+description: >
+  Gemini calls a function with invalid arguments; the backend catches
+  the error, returns an error response, and the session continues.
+tier: [integration]
+judge_critical: false
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+
+fake_script:
+  - type: tool_call
+    name: update_cooking_step
+    args:
+      step_name: "nonexistent_step"
+    id: fc_fail_001
+  - type: turn_complete
+
+expected:
+  events:
+    - tool_call_received
+    - tool_call_completed
+  tool_response_contains_error: true

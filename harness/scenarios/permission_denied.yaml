@@ -1,0 +1,22 @@
+id: permission_denied
+name: "Permission denied — camera/mic fallback"
+description: >
+  Browser denies camera and microphone access. The app should stay on
+  the permission screen and display a clear error, not crash.
+tier: [system]
+judge_critical: false
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+
+browser_config:
+  deny_permissions: [camera, microphone]
+
+expected:
+  frontend:
+    - permissions_denied
+    - error_banner_shown
+  dom:
+    - permission_screen_visible: true
+    - cooking_screen_visible: false

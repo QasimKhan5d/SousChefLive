@@ -1,0 +1,38 @@
+id: proactive_timer
+name: "Proactive timer — agent sets timer without user request"
+description: >
+  Agent observes cooking start and proactively sets a sear timer,
+  verifying the timer card appears and pre-alert/final-alert fire.
+tier: [integration, system, live]
+judge_critical: true
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+    enable_affective_dialog: true
+
+fake_script:
+  - type: tool_call
+    name: set_timer
+    args:
+      duration_seconds: 120
+      label: "sear_side_1"
+    id: fc_timer_001
+  - type: output_transcription
+    text: "Starting a 2-minute sear timer. Don't touch the chicken yet."
+  - type: turn_complete
+
+client_messages:
+  - type: text
+    text: "SYSTEM: Cook has placed chicken in hot pan."
+
+expected:
+  state:
+    timers_count_gte: 1
+  events:
+    - tool_call_received
+    - tool_call_completed
+    - timer_scheduled
+    - state_update_sent
+    - turn_complete
+  latency_budget_ms: 2000

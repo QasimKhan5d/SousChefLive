@@ -1,0 +1,45 @@
+id: recipe_start
+name: "Recipe start — ingredient intake to cook mode"
+description: >
+  Cook describes ingredients; agent suggests a recipe (calls update_recipe),
+  transitions to live cook mode (calls update_cooking_step to "prep"),
+  and confirms readiness.
+tier: [unit, integration, system, live]
+judge_critical: true
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+    enable_affective_dialog: true
+  input_audio_transcription: {}
+  output_audio_transcription: {}
+
+fake_script:
+  - type: output_transcription
+    text: "Great! Let's make garlic butter chicken thighs. Get your pan ready."
+  - type: tool_call
+    name: update_recipe
+    args:
+      recipe_name: "garlic butter chicken thighs"
+    id: fc_recipe_001
+  - type: tool_call
+    name: update_cooking_step
+    args:
+      step_name: prep
+    id: fc_step_001
+  - type: turn_complete
+
+client_messages:
+  - type: text
+    text: "Chef, I have chicken thighs, garlic, and butter"
+
+expected:
+  state:
+    recipe_name: "garlic butter chicken thighs"
+    current_step: prep
+  events:
+    - tool_call_received
+    - tool_call_completed
+    - state_update_sent
+    - turn_complete
+  latency_budget_ms: 3000

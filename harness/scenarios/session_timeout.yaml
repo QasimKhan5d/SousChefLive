@@ -1,0 +1,19 @@
+id: session_timeout
+name: "Session timeout — server enforces time limit"
+description: >
+  Session exceeds the configured time limit; server closes the
+  WebSocket with code 1000 and cleans up session resources.
+tier: [integration, deploy]
+judge_critical: false
+
+setup:
+  generation_config:
+    response_modalities: [AUDIO]
+
+override_env:
+  SESSION_TIME_LIMIT: "2"
+
+expected:
+  events:
+    - session_timeout
+    - session_cleanup

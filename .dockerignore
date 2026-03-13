@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+.pytest_cache
+__pycache__
+node_modules
+frontend
+examples
+harness
+tests
+docs
+scripts
+*.md
+.cursor
+agent-transcripts
+artifacts
