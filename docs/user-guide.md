@@ -669,7 +669,7 @@ The session badge in the cooking screen already shows `us-central1`, RTT latency
 Before submitting to Devpost:
 
 - [ ] 4-minute demo video uploaded (real cooking, no mockups)
-- [ ] Deployment proof recording uploaded (Cloud Run console + logs)
+- [ ] Deployment proof provided (link to `scripts/deploy.sh` OR screen recording)
 - [ ] GitHub repo is public with:
   - [ ] README with setup instructions
   - [ ] `requirements.txt` with dependencies

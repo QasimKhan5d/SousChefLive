@@ -12,7 +12,8 @@ import { debugEvent } from './debug.js';
 const $ = (sel) => document.querySelector(sel);
 
 const STEP_ORDER = [
-  'idle', 'recipe_selected', 'prep', 'cooking', 'resting', 'plating', 'done',
+  'idle', 'prep', 'heat', 'sear_side_1', 'flip',
+  'sear_side_2', 'baste', 'rest', 'done',
 ];
 
 let _waveformCtx = null;
