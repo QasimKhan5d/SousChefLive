@@ -140,7 +140,7 @@ Once you start, the screen transitions to the cooking interface:
 │  ┌ Chef is speaking ════════════┐    │  ← Speaking indicator + waveform
 │                                      │
 │  ┌──────────────────────────────┐    │
-│  │ ●●●● 420ms │ europe-west1 │s_│    │  ← Session badge (deployment proof)
+│  │ ●●●● 420ms │ <region> │s_    │    │  ← Session badge (deployment proof)
 │  │ [■ Stop] [□ Demo 10x]       │    │  ← Controls
 │  └──────────────────────────────┘    │
 │  ┌ Transcript ──────────────────┐    │
@@ -281,7 +281,7 @@ The app uses a session memory system with conversation turns, rolling summaries,
 The session badge shows:
 - **Signal bars**: Green (< 200ms), yellow (< 500ms), red (> 500ms)
 - **RTT**: Round-trip time to the server in milliseconds
-- **Region**: `europe-west1` (Google Cloud region)
+- **Region**: The Google Cloud region for the deployment you opened. For this project that is typically `europe-west1` for the live demo or `us-central1` for the judges/default deployment.
 - **Session ID**: Truncated unique identifier proving this is a real session
 - **Timer count**: Number of active timers
 
@@ -332,7 +332,7 @@ Also have nearby:
 2. **Grant permissions**: Camera + microphone (must be HTTPS for this to work)
 3. **Verify video**: You should see your camera feed as the full background
 4. **Verify audio**: Say "Hello chef" — you should hear a response within 2 seconds
-5. **Check session badge**: Should show `europe-west1`, an RTT value, and a session ID
+5. **Check session badge**: Should show the same region as the URL you opened (`europe-west1` for the Europe demo URL or `us-central1` for the judges/default URL), plus an RTT value and a session ID
 6. **Check LIVE indicator**: Should show a pulsing red dot
 7. **Test Demo Speed**: Check the "Demo 10x" box — you'll use this during the demo
 8. **Pre-cook the dish once** before filming. Know the timing so you're not fumbling during the demo.
@@ -531,7 +531,7 @@ Before recording the final demo, run through each of these manually. Check the b
 - [ ] Tap transcript header to expand/collapse
 
 ### Session Quality
-- [ ] Session badge shows region (`europe-west1`)
+- [ ] Session badge shows the region matching the deployment URL you opened (`europe-west1` or `us-central1`)
 - [ ] RTT shows a realistic latency value
 - [ ] LIVE indicator pulses red
 - [ ] Signal bars show quality level
@@ -614,7 +614,7 @@ Demo URL:  https://souschef-live-5z4a6smnda-ew.a.run.app
 Judge URL: https://souschef-live-5z4a6smnda-uc.a.run.app
 Model:   gemini-2.5-flash-native-audio-latest
 Voice:   Aoede
-Region:  europe-west1 (Cloud Run)
+Region:  Should match the URL you opened (`europe-west1` demo / `us-central1` judges)
 
 DEMO FLOW (4 min):
   0:00  Pitch to camera (1 sentence: problem + solution)
@@ -661,7 +661,7 @@ A 1-2 minute recording showing:
 4. Health endpoint: `https://souschef-live-5z4a6smnda-ew.a.run.app/api/health` (or the matching `us-central1` URL if proving the judges deployment)
 
 **In-app proof (passive, no action needed):**
-The session badge in the cooking screen already shows `europe-west1`, RTT latency, and session ID throughout the demo — judges see this without any infrastructure screen-switching.
+The session badge in the cooking screen already shows the active deployment region, RTT latency, and session ID throughout the demo — judges see this without any infrastructure screen-switching.
 
 ---
 

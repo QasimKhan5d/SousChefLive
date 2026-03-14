@@ -6,6 +6,17 @@ Built for the [Gemini Live Agent Challenge](https://geminiliveagentchallenge.dev
 
 ---
 
+## Judge Quick Links
+
+- **Live demo (Europe):** [https://souschef-live-5z4a6smnda-ew.a.run.app](https://souschef-live-5z4a6smnda-ew.a.run.app)
+- **Live app (judges / default deploy):** [https://souschef-live-5z4a6smnda-uc.a.run.app](https://souschef-live-5z4a6smnda-uc.a.run.app)
+- **Demo script:** `docs/demo.md`
+- **Presenter guide:** `docs/user-guide.md`
+- **Deployment proof plan:** `docs/deployment-proof-plan.md`
+- **Full technical design:** `docs/design.md`
+
+---
+
 ## What It Does
 
 SousChef Live streams your kitchen camera and microphone to a Gemini Live model that watches, listens, and coaches you in real-time — hands-free. Unlike recipe chatbots, SousChef:
@@ -20,19 +31,17 @@ SousChef Live streams your kitchen camera and microphone to a Gemini Live model 
 
 ## Architecture
 
-![Architecture Diagram](docs/architecture-diagram.png)
+```mermaid
+graph TD
+  Cook["Cook with phone / laptop"] --> Browser["Browser UI\nVanilla JS + AudioWorklets"]
+  Browser -->|"PCM audio + JPEG frames + text over WSS"| Backend["FastAPI on Cloud Run"]
+  Backend -->|"Live multimodal session"| Gemini["Gemini Live API\n`gemini-2.5-flash-native-audio-latest`"]
+  Gemini -->|"audio responses + transcripts + tool calls"| Backend
+  Backend -->|"state updates + timers + transcript + audio"| Browser
+  Backend --> Memory["In-memory session store\nrecipe, steps, timers, rolling memory"]
+```
 
-```
-Phone Camera + Mic → Browser Client (Vanilla JS + AudioWorklets)
-        ↓
-    WebSocket (binary audio + JSON)
-        ↓
-    FastAPI on Cloud Run
-        ↓
-    Gemini Live API (gemini-2.5-flash-native-audio-latest)
-        ↓
-    In-memory SessionStore + Timer Scheduler
-```
+Expanded architecture, sequence diagrams, and deployment details live in `docs/design.md`.
 
 | Component | Technology |
 |-----------|-----------|

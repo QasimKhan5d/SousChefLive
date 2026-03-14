@@ -21,6 +21,8 @@
 
 ## Demo Timeline
 
+**Fallback rule:** If the chef does not produce the expected proactive behavior within about 3 seconds, use the backup prompt shown in that section and continue the story. The goal is a smooth, believable demo, not waiting in silence for the perfect unsolicited line.
+
 ### 0:00–0:15 — Quick Pitch (Talk to Camera)
 
 Camera on you in the kitchen. Ingredients visible behind you.
@@ -68,6 +70,9 @@ Agent stops mid-response, answers:
 - Proactive safety intervention
 - Barge-in / interruption handling
 
+**Fallback if needed:** If the chef does not interrupt on its own, immediately ask:
+> "Chef, what do you notice about my knife grip?"
+
 ---
 
 ### 1:10–2:00 — Pan Readiness (Honest Observational Reasoning)
@@ -90,6 +95,9 @@ UI: Timer card appears automatically. Step transitions to `sear_side_1`.
 - Visual cue detection (oil shimmer)
 - Honest observational claims (not fake precision)
 - Proactive timer (agent-initiated, not user-requested)
+
+**Fallback if needed:** If the chef does not warn you or does not set the timer on its own, say:
+> "Chef, is this pan ready yet, and set a sear timer when it is."
 
 ---
 
@@ -116,6 +124,9 @@ UI: Step transitions to `flip`, then `sear_side_2`.
 - Proactive coaching (unsolicited guidance)
 - Barge-in handling (stops, answers, resumes)
 
+**Fallback if needed:** If no timer alert arrives on time, ask:
+> "Chef, remind me when to flip and tell me why I shouldn't move it yet."
+
 ---
 
 ### 3:00–3:50 — Doneness Guidance + Rest
@@ -134,6 +145,9 @@ UI: New timer card appears. Step transitions to `rest`.
 - Visual doneness assessment
 - Multi-timer management
 - Continued proactive behavior
+
+**Fallback if needed:** If the chef does not comment on doneness or rest on its own, say:
+> "Chef, what are you seeing on the chicken right now, and should it rest?"
 
 ---
 
