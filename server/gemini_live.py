@@ -81,6 +81,7 @@ class GeminiLive:
         retry_count = 0
 
         while True:
+            session_id = session_context.session_id if session_context else ""
             handle = session_context.resumption_handle if session_context else None
             config = self._build_live_config(
                 setup_config or {},
@@ -88,6 +89,7 @@ class GeminiLive:
             )
 
             emit("backend.bridge", "live_connect_start",
+                 session_id=session_id,
                  details={"model": self.model, "has_handle": handle is not None,
                            "retry": retry_count})
 
@@ -97,7 +99,7 @@ class GeminiLive:
                 async with self.client.aio.live.connect(
                     model=self.model, config=config
                 ) as session:
-                    emit("backend.bridge", "live_connect_ok")
+                    emit("backend.bridge", "live_connect_ok", session_id=session_id)
                     retry_count = 0
 
                     event_queue: asyncio.Queue = asyncio.Queue()
@@ -150,12 +152,14 @@ class GeminiLive:
                                         if hasattr(sru, "new_handle") and sru.new_handle:
                                             if session_context:
                                                 session_context.resumption_handle = sru.new_handle
-                                                emit("backend.bridge", "resumption_handle_captured")
+                                                emit("backend.bridge", "resumption_handle_captured",
+                                                     session_id=session_id)
 
                                     # Handle GoAway signals
                                     if hasattr(response, "go_away") and response.go_away:
                                         time_left = getattr(response.go_away, "time_left", None)
                                         emit("backend.bridge", "go_away_received",
+                                             session_id=session_id,
                                              details={"time_left": str(time_left)})
                                         await event_queue.put({
                                             "type": "go_away",
@@ -173,7 +177,8 @@ class GeminiLive:
                                                         await audio_output_callback(part.inline_data.data)
                                                     else:
                                                         audio_output_callback(part.inline_data.data)
-                                                    emit("backend.bridge", "audio_out_chunk")
+                                                    emit("backend.bridge", "audio_out_chunk",
+                                                         session_id=session_id)
 
                                         if sc.input_transcription:
                                             txt = _clean_transcription(sc.input_transcription.text)
@@ -205,7 +210,8 @@ class GeminiLive:
 
                                         if sc.turn_complete:
                                             await event_queue.put({"serverContent": {"turnComplete": True}})
-                                            emit("backend.bridge", "turn_complete")
+                                            emit("backend.bridge", "turn_complete",
+                                                 session_id=session_id)
 
                                             if session_context and session_context.memory.needs_compaction():
                                                 asyncio.create_task(
@@ -214,7 +220,8 @@ class GeminiLive:
 
                                         if sc.interrupted:
                                             await event_queue.put({"serverContent": {"interrupted": True}})
-                                            emit("backend.bridge", "interrupt_received")
+                                            emit("backend.bridge", "interrupt_received",
+                                                 session_id=session_id)
 
                                     if tc:
                                         function_responses = []
@@ -224,6 +231,7 @@ class GeminiLive:
 
                                             emit(
                                                 "backend.bridge", "tool_call_received",
+                                                session_id=session_id,
                                                 details={"name": func_name, "args": args},
                                             )
 
@@ -239,12 +247,14 @@ class GeminiLive:
                                                         )
                                                     emit(
                                                         "backend.bridge", "tool_call_completed",
+                                                        session_id=session_id,
                                                         details={"name": func_name, "result": result},
                                                     )
                                                 except Exception as e:
                                                     result = {"error": str(e)}
                                                     emit(
                                                         "backend.bridge", "tool_call_failed",
+                                                        session_id=session_id,
                                                         severity="ERROR",
                                                         details={"name": func_name, "error": str(e)},
                                                     )
@@ -273,9 +283,11 @@ class GeminiLive:
                             resumable_error = True
                             if session_context and session_context.resumption_handle:
                                 emit("backend.bridge", "upstream_resumable_disconnect",
+                                     session_id=session_id,
                                      details={"error": error_str, "has_handle": True})
                             else:
                                 emit("backend.bridge", "upstream_resumable_disconnect",
+                                     session_id=session_id,
                                      details={"error": error_str, "has_handle": False})
                         finally:
                             if not resumable_error:
@@ -306,6 +318,7 @@ class GeminiLive:
             except Exception as e:
                 resumable_error = True
                 emit("backend.bridge", "upstream_connect_failed",
+                     session_id=session_id,
                      details={"error": str(e),
                               "has_handle": bool(session_context and session_context.resumption_handle)})
 
@@ -313,11 +326,13 @@ class GeminiLive:
                 retry_count += 1
                 if retry_count > MAX_UPSTREAM_RETRIES:
                     emit("backend.bridge", "upstream_retries_exhausted",
+                         session_id=session_id,
                          severity="ERROR")
                     yield {"type": "error", "error": "Gemini session lost after retries — please reconnect"}
                     return
                 delay = min(2 ** retry_count, 8)
                 emit("backend.bridge", "upstream_reconnecting",
+                     session_id=session_id,
                      details={"retry": retry_count, "delay": delay})
                 await asyncio.sleep(delay)
                 continue
