@@ -9,7 +9,7 @@ DEPLOY_URL="${DEPLOY_URL:-}"
 if [ -z "$DEPLOY_URL" ]; then
   echo "Discovering Cloud Run URL..."
   DEPLOY_URL=$(gcloud run services describe souschef-live \
-    --region=us-central1 \
+    --region=europe-west1 \
     --format='value(status.url)' 2>/dev/null || true)
 fi
 

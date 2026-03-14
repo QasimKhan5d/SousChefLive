@@ -75,7 +75,7 @@ SousChef Live satisfies every requirement: real-time voice interaction, vision, 
                    WSS (encrypted)
                         │
 ┌──────────────────────────────────────────────────────────┐
-│  GOOGLE CLOUD RUN (us-central1)                          │
+│  GOOGLE CLOUD RUN (europe-west1)                          │
 │                                                          │
 │  FastAPI WebSocket Server                                │
 │  ├── Receives audio + video + text from browser          │
@@ -140,7 +140,7 @@ Once you start, the screen transitions to the cooking interface:
 │  ┌ Chef is speaking ════════════┐    │  ← Speaking indicator + waveform
 │                                      │
 │  ┌──────────────────────────────┐    │
-│  │ ●●●● 420ms │ us-central1 │s_│    │  ← Session badge (deployment proof)
+│  │ ●●●● 420ms │ europe-west1 │s_│    │  ← Session badge (deployment proof)
 │  │ [■ Stop] [□ Demo 10x]       │    │  ← Controls
 │  └──────────────────────────────┘    │
 │  ┌ Transcript ──────────────────┐    │
@@ -281,7 +281,7 @@ The app uses a session memory system with conversation turns, rolling summaries,
 The session badge shows:
 - **Signal bars**: Green (< 200ms), yellow (< 500ms), red (> 500ms)
 - **RTT**: Round-trip time to the server in milliseconds
-- **Region**: `us-central1` (Google Cloud region)
+- **Region**: `europe-west1` (Google Cloud region)
 - **Session ID**: Truncated unique identifier proving this is a real session
 - **Timer count**: Number of active timers
 
@@ -328,11 +328,11 @@ Also have nearby:
 
 ### 5.3 Pre-Flight Checks
 
-1. **Open the app**: `https://souschef-live-504591545979.us-central1.run.app`
+1. **Open the app**: `https://souschef-live-504591545979.europe-west1.run.app`
 2. **Grant permissions**: Camera + microphone (must be HTTPS for this to work)
 3. **Verify video**: You should see your camera feed as the full background
 4. **Verify audio**: Say "Hello chef" — you should hear a response within 2 seconds
-5. **Check session badge**: Should show `us-central1`, an RTT value, and a session ID
+5. **Check session badge**: Should show `europe-west1`, an RTT value, and a session ID
 6. **Check LIVE indicator**: Should show a pulsing red dot
 7. **Test Demo Speed**: Check the "Demo 10x" box — you'll use this during the demo
 8. **Pre-cook the dish once** before filming. Know the timing so you're not fumbling during the demo.
@@ -531,7 +531,7 @@ Before recording the final demo, run through each of these manually. Check the b
 - [ ] Tap transcript header to expand/collapse
 
 ### Session Quality
-- [ ] Session badge shows region (`us-central1`)
+- [ ] Session badge shows region (`europe-west1`)
 - [ ] RTT shows a realistic latency value
 - [ ] LIVE indicator pulses red
 - [ ] Signal bars show quality level
@@ -590,7 +590,7 @@ What matters:
 ### Other Criteria
 
 - **Gemini usage**: Must use Gemini Live API — we do (native audio, multimodal, function calling)
-- **Google Cloud**: Must host on Google Cloud — we do (Cloud Run, us-central1)
+- **Google Cloud**: Must host on Google Cloud — we do (Cloud Run, europe-west1)
 - **Reproducible**: Must have README + setup instructions — we do
 - **Deployment proof**: Separate recording showing Cloud Run console, logs, health endpoint
 
@@ -610,10 +610,10 @@ What matters:
 Print or screenshot this for the demo.
 
 ```
-URL:     https://souschef-live-504591545979.us-central1.run.app
+URL:     https://souschef-live-504591545979.europe-west1.run.app
 Model:   gemini-2.5-flash-native-audio-latest
 Voice:   Aoede
-Region:  us-central1 (Cloud Run)
+Region:  europe-west1 (Cloud Run)
 
 DEMO FLOW (4 min):
   0:00  Pitch to camera (1 sentence: problem + solution)
@@ -654,13 +654,13 @@ Link to `scripts/deploy.sh` in your public GitHub repo. This is an automated `gc
 
 **Option B — Screen recording (stronger, optional):**
 A 1-2 minute recording showing:
-1. Cloud Run console → `souschef-live` service running in `us-central1`
+1. Cloud Run console → `souschef-live` service running in `europe-west1`
 2. Environment variables configured (GEMINI_API_KEY, MODEL)
 3. Cloud Run logs streaming structured events
-4. Health endpoint: `https://souschef-live-504591545979.us-central1.run.app/api/health`
+4. Health endpoint: `https://souschef-live-504591545979.europe-west1.run.app/api/health`
 
 **In-app proof (passive, no action needed):**
-The session badge in the cooking screen already shows `us-central1`, RTT latency, and session ID throughout the demo — judges see this without any infrastructure screen-switching.
+The session badge in the cooking screen already shows `europe-west1`, RTT latency, and session ID throughout the demo — judges see this without any infrastructure screen-switching.
 
 ---
 

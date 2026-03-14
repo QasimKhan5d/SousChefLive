@@ -18,7 +18,7 @@ const state = {
   timers: [],
   transcript: [],
   demoSpeed: false,
-  sessionInfo: { region: 'us-central1', rttMs: 0 },
+  sessionInfo: { region: 'europe-west1', rttMs: 0 },
   error: null,
 };
 

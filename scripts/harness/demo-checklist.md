@@ -42,13 +42,13 @@ Google Cloud deployment proof video.
 
 ## Google Cloud Deployment Proof (Separate Recording)
 
-- [ ] Show Cloud Run console: service `souschef-live` running in `us-central1`
+- [ ] Show Cloud Run console: service `souschef-live` running in `europe-west1`
 - [ ] Show service details: min-instances=1, session affinity enabled
 - [ ] Show environment variables (mask the API key value)
 - [ ] Show logs streaming in Cloud Run logs explorer
 - [ ] Open deployed URL on phone/browser
 - [ ] Complete a brief cooking interaction on deployed infra
-- [ ] Show session badge confirming `us-central1 | Cloud Run`
+- [ ] Show session badge confirming `europe-west1 | Cloud Run`
 
 ## Post-Demo Validation
 

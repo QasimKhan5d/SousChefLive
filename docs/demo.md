@@ -3,7 +3,7 @@
 **Duration:** 4 minutes  
 **Dish:** Garlic Butter Chicken Thighs (Pan-Seared, Skin-On)  
 **Camera:** Friend filming, shoulder-angle with close-ups  
-**Deployed at:** `souschef-live-504591545979.us-central1.run.app`
+**Deployed at:** `souschef-live-504591545979.europe-west1.run.app`
 
 ---
 
@@ -149,7 +149,7 @@ Cut.
 
 These elements are always visible in the product UI, subtly proving real deployment:
 
-1. **Session badge:** `us-central1 | Cloud Run`
+1. **Session badge:** `europe-west1 | Cloud Run`
 2. **RTT indicator:** `RTT: 420ms`
 3. **Timer badge:** `Timers: 1 active`
 4. **Step chip:** Current cooking phase
@@ -174,7 +174,7 @@ No architecture slides needed. The product itself proves deployment.
 
 ### Technical Implementation (30%)
 - google-genai SDK with Gemini Live API (bidi streaming, native audio)
-- Cloud Run deployment (us-central1, session affinity, 3600s timeout)
+- Cloud Run deployment (europe-west1, session affinity, 3600s timeout)
 - 4 function-calling tools: update_recipe, set_timer, update_cooking_step, get_cooking_state
 - Error handling: reconnect with state hydration, session resumption handles
 - Grounding: agent describes observations ("I'm not seeing shimmer") not measurements
@@ -184,7 +184,7 @@ No architecture slides needed. The product itself proves deployment.
 - Pitch in first 15 seconds: defines problem (phone-bound cooking) and solution
 - Architecture diagram in repo + Devpost image carousel
 - Cloud deployment proof: separate recording OR link to `scripts/deploy.sh`
-- Session badge (us-central1, RTT, session ID) visible throughout demo as passive proof
+- Session badge (europe-west1, RTT, session ID) visible throughout demo as passive proof
 - Actual software working live — no mockups, no pre-recorded responses
 - Clear story arc (ingredients → guidance → correction → completion)
 
@@ -225,7 +225,7 @@ A 1-2 minute recording showing:
 See `docs/deployment-proof-plan.md` for details.
 
 ### In the demo itself
-The session badge (`us-central1`, RTT, session ID) is always visible in the product UI during the demo — this provides passive visual proof without needing to switch to infrastructure screens.
+The session badge (`europe-west1`, RTT, session ID) is always visible in the product UI during the demo — this provides passive visual proof without needing to switch to infrastructure screens.
 
 ---
 

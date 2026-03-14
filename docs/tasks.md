@@ -362,7 +362,7 @@
 
 **Acceptance**:
 - [ ] `scripts/deploy.sh` builds frontend, enables GCP services, and deploys to Cloud Run
-- [ ] Cloud Run service `souschef-live` running in `us-central1`
+- [ ] Cloud Run service `souschef-live` running in `europe-west1`
 - [ ] Session affinity, 3600s timeout, min-instances=1, concurrency=1, 2 CPU / 1Gi memory
 - [ ] `GEMINI_API_KEY`, `MODEL`, `SESSION_TIME_LIMIT`, and `DEV_MODE` set as env vars
 - [ ] WebSocket connections work through Cloud Run HTTPS endpoint
@@ -380,7 +380,7 @@
 **Acceptance**:
 - [ ] Open deployed URL on phone
 - [ ] Full E2E smoke test checklist passes (same as T-17 but on deployed infra)
-- [ ] Session badge shows `us-central1 | Cloud Run`, RTT, and active timer/event count
+- [ ] Session badge shows `europe-west1 | Cloud Run`, RTT, and active timer/event count
 - [ ] Voice response latency < 2s
 - [ ] No cold start delays (min instance warm)
 - [ ] Reconnect with same `session_id` restores session state when the in-memory session still exists

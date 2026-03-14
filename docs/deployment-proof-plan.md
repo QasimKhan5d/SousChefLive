@@ -9,7 +9,7 @@ deployment proof recording required by the hackathon.
 
 ### 1. Cloud Run Console Screenshot
 - Service: `souschef-live`
-- Region: `us-central1`
+- Region: `europe-west1`
 - Status: green / serving
 - Capture: service overview page showing URL, revision, traffic
 
@@ -34,7 +34,7 @@ deployment proof recording required by the hackathon.
 - Open deployed URL on phone or browser
 - Grant permissions
 - Brief cooking interaction (30-60 seconds)
-- Show session badge: `us-central1 | Cloud Run`, RTT, session ID
+- Show session badge: `europe-west1 | Cloud Run`, RTT, session ID
 
 ### 6. Architecture Diagram
 - Include in repo: `docs/architecture-diagram.png` or reference from `docs/design.md`

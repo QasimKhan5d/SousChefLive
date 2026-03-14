@@ -146,13 +146,13 @@ Look for the complete lifecycle: `ws_connect` → `session_created` → `live_co
 
 **How to run**:
 ```bash
-DEPLOYED_URL=https://souschef-live-504591545979.us-central1.run.app \
+DEPLOYED_URL=https://souschef-live-504591545979.europe-west1.run.app \
   npx playwright test --config tests/browser/playwright.config.js --reporter=list
 ```
 
 **Taking screenshots for manual inspection**:
 ```bash
-DEPLOYED_URL=https://souschef-live-504591545979.us-central1.run.app \
+DEPLOYED_URL=https://souschef-live-504591545979.europe-west1.run.app \
   npx playwright test --config tests/browser/playwright.config.js \
   --reporter=html --screenshot=on
 npx playwright show-report
@@ -232,7 +232,7 @@ python -m pytest server/tests/integration/ -v
 source .env && bash scripts/deploy.sh
 
 # 4. Health check
-curl -s https://souschef-live-504591545979.us-central1.run.app/api/health | python3 -m json.tool
+curl -s https://souschef-live-504591545979.europe-west1.run.app/api/health | python3 -m json.tool
 
 # 5. Live smoke test (verifies Gemini API key + audio generation)
 source .env && python -m pytest tests/live/test_live_smoke.py -v --timeout=30
@@ -241,7 +241,7 @@ source .env && python -m pytest tests/live/test_live_smoke.py -v --timeout=30
 source .env && python -m pytest tests/live/test_deployed_e2e.py -v --timeout=90
 
 # 7. Browser tests (verifies UI rendering, screenshots on failure)
-DEPLOYED_URL=https://souschef-live-504591545979.us-central1.run.app \
+DEPLOYED_URL=https://souschef-live-504591545979.europe-west1.run.app \
   npx playwright test --config tests/browser/playwright.config.js --reporter=list
 
 # 8. Check Cloud Run logs for any errors

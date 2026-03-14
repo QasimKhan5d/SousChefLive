@@ -61,7 +61,7 @@ test.describe('SousChef Live — Deployed App', () => {
     await page.waitForTimeout(600);
 
     await expect(page.locator('#recipe-text')).toContainText('--');
-    await expect(page.locator('#badge-region')).toContainText('us-central1');
+    await expect(page.locator('#badge-region')).toContainText('europe-west1');
     await expect(page.locator('#badge-rtt')).toBeVisible();
     await expect(page.locator('#badge-session')).toBeVisible();
     await expect(page.locator('#step-text')).toContainText('Idle');

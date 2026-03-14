@@ -40,9 +40,9 @@ The product is intentionally designed as a live cooking companion rather than a 
 
 ### Deployment
 
-- Deployed to Google Cloud Run in `us-central1`
+- Deployed to Google Cloud Run in `europe-west1`
 - Public service URL:
-  - `https://souschef-live-504591545979.us-central1.run.app`
+  - `https://souschef-live-504591545979.europe-west1.run.app`
 - Session affinity enabled
 - `min-instances=1`
 - `concurrency=1`

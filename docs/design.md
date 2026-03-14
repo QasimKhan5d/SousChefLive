@@ -680,7 +680,7 @@ const state = {
   timers: [],
   transcript: [],
   demoSpeed: false,
-  sessionInfo: { region: "us-central1", rttMs: 0 },
+  sessionInfo: { region: "europe-west1", rttMs: 0 },
 };
 ```
 
@@ -821,7 +821,7 @@ cd "$(dirname "$0")/.."
 PROJECT_ID="${PROJECT_ID:?Set PROJECT_ID}"
 GEMINI_API_KEY="${GEMINI_API_KEY:?Set GEMINI_API_KEY}"
 SERVICE_NAME="souschef-live"
-REGION="${REGION:-us-central1}"
+REGION="${REGION:-europe-west1}"
 MODEL="gemini-2.5-flash-native-audio-latest"
 
 echo "Building frontend..."

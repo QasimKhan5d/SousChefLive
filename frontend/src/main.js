@@ -30,7 +30,7 @@ const SESSION_RESET_STATE = {
   timers: [],
   transcript: [],
   error: null,
-  sessionInfo: { region: 'us-central1', rttMs: 0 },
+  sessionInfo: { region: 'europe-west1', rttMs: 0 },
 };
 
 function generateSessionId() {
