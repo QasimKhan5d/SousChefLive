@@ -635,7 +635,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 send_event,
                 setup_config,
             ),
-            timeout=SESSION_TIME_LIMIT,
+            timeout=SESSION_MAX_AGE,
         )
     finally:
         client_task.cancel()
@@ -772,7 +772,7 @@ graph TB
   Instance -->|"serve built frontend"| BrowserAssets["dist/ assets"]
 
   subgraph config [RuntimeConfig]
-    Env["GEMINI_API_KEY MODEL SESSION_TIME_LIMIT DEV_MODE"]
+    Env["GEMINI_API_KEY MODEL DEPLOYMENT_REGION SESSION_IDLE_TTL SESSION_MAX_AGE DEV_MODE"]
     Resources["CPU 2 Memory 1Gi MinInstances 1 MaxInstances 4 Timeout 3600"]
   end
 ```
@@ -821,8 +821,8 @@ cd "$(dirname "$0")/.."
 PROJECT_ID="${PROJECT_ID:?Set PROJECT_ID}"
 GEMINI_API_KEY="${GEMINI_API_KEY:?Set GEMINI_API_KEY}"
 SERVICE_NAME="souschef-live"
-REGION="${REGION:-europe-west1}"
-MODEL="gemini-2.5-flash-native-audio-latest"
+REGION="${REGION:-us-central1}"
+MODEL="${MODEL:-gemini-2.5-flash-native-audio-latest}"
 
 echo "Building frontend..."
 npm run build
@@ -849,11 +849,13 @@ gcloud run deploy "$SERVICE_NAME" \
   --memory 1Gi \
   --set-env-vars GEMINI_API_KEY="$GEMINI_API_KEY" \
   --set-env-vars MODEL="$MODEL" \
-  --set-env-vars SESSION_TIME_LIMIT="900" \
+  --set-env-vars DEPLOYMENT_REGION="$REGION" \
+  --set-env-vars SESSION_IDLE_TTL="300" \
+  --set-env-vars SESSION_MAX_AGE="3600" \
   --set-env-vars DEV_MODE="false"
 ```
 
-This follows the same operational model as the Immergo sample, but with our smaller env surface area.
+This follows the same operational model as the Immergo sample, but with our smaller env surface area. The repository defaults deployment to `us-central1` for judge reproducibility, while demoers in Europe can override with `REGION=europe-west1 ./scripts/deploy.sh` for lower latency.
 
 ### 4.4 `app.json` and Runtime Dependencies
 

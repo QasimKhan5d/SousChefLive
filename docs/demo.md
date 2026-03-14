@@ -3,7 +3,8 @@
 **Duration:** 4 minutes  
 **Dish:** Garlic Butter Chicken Thighs (Pan-Seared, Skin-On)  
 **Camera:** Friend filming, shoulder-angle with close-ups  
-**Deployed at:** `souschef-live-504591545979.europe-west1.run.app`
+**Demo URL (Europe):** `https://souschef-live-5z4a6smnda-ew.a.run.app`  
+**Judges URL (default deploy):** `https://souschef-live-5z4a6smnda-uc.a.run.app`
 
 ---
 
@@ -174,7 +175,7 @@ No architecture slides needed. The product itself proves deployment.
 
 ### Technical Implementation (30%)
 - google-genai SDK with Gemini Live API (bidi streaming, native audio)
-- Cloud Run deployment (europe-west1, session affinity, 3600s timeout)
+- Cloud Run deployment (repository default `us-central1`, demo override `europe-west1`, session affinity, 3600s timeout)
 - 4 function-calling tools: update_recipe, set_timer, update_cooking_step, get_cooking_state
 - Error handling: reconnect with state hydration, session resumption handles
 - Grounding: agent describes observations ("I'm not seeing shimmer") not measurements

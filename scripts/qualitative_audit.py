@@ -9,7 +9,7 @@ WebSocket event, and prints a detailed human-readable report analyzing:
 - UX red flags (long silences, garbled output, character breaks)
 
 Usage:
-    source .env && GEMINI_API_KEY="$GEMINI_API_KEY" python scripts/qualitative_audit.py
+    set -a && source .env && set +a && python scripts/qualitative_audit.py
 """
 
 import asyncio
@@ -25,7 +25,7 @@ import websockets
 
 DEPLOYED_URL = os.environ.get(
     "DEPLOYED_URL",
-    "https://souschef-live-504591545979.europe-west1.run.app",
+    "https://souschef-live-5z4a6smnda-uc.a.run.app",
 )
 FIXTURES = Path(__file__).resolve().parent.parent / "harness" / "fixtures" / "images"
 

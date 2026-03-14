@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 60000,
   retries: 0,
   use: {
-    baseURL: process.env.DEPLOYED_URL || 'https://souschef-live-504591545979.europe-west1.run.app',
+    baseURL: process.env.DEPLOYED_URL || 'https://souschef-live-5z4a6smnda-uc.a.run.app',
     headless: true,
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',

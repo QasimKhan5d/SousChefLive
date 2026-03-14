@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 PROJECT_ID="${PROJECT_ID:?Set PROJECT_ID}"
 GEMINI_API_KEY="${GEMINI_API_KEY:?Set GEMINI_API_KEY}"
 SERVICE_NAME="souschef-live"
-REGION="${REGION:-europe-west1}"
+REGION="${REGION:-us-central1}"
 MODEL="${MODEL:-gemini-2.5-flash-native-audio-latest}"
 
 echo "Building frontend..."
@@ -33,6 +33,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --memory 1Gi \
   --set-env-vars GEMINI_API_KEY="$GEMINI_API_KEY" \
   --set-env-vars MODEL="$MODEL" \
+  --set-env-vars DEPLOYMENT_REGION="$REGION" \
   --set-env-vars SESSION_IDLE_TTL="300" \
   --set-env-vars SESSION_MAX_AGE="3600" \
   --set-env-vars DEV_MODE="false"

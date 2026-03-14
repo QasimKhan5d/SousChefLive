@@ -75,7 +75,7 @@ SousChef Live satisfies every requirement: real-time voice interaction, vision, 
                    WSS (encrypted)
                         │
 ┌──────────────────────────────────────────────────────────┐
-│  GOOGLE CLOUD RUN (europe-west1)                          │
+│  GOOGLE CLOUD RUN (demo shown: europe-west1)              │
 │                                                          │
 │  FastAPI WebSocket Server                                │
 │  ├── Receives audio + video + text from browser          │
@@ -328,7 +328,7 @@ Also have nearby:
 
 ### 5.3 Pre-Flight Checks
 
-1. **Open the app**: `https://souschef-live-504591545979.europe-west1.run.app`
+1. **Open the app**: `https://souschef-live-5z4a6smnda-ew.a.run.app` for the Europe demo, or `https://souschef-live-5z4a6smnda-uc.a.run.app` for the default judges deployment
 2. **Grant permissions**: Camera + microphone (must be HTTPS for this to work)
 3. **Verify video**: You should see your camera feed as the full background
 4. **Verify audio**: Say "Hello chef" — you should hear a response within 2 seconds
@@ -590,7 +590,7 @@ What matters:
 ### Other Criteria
 
 - **Gemini usage**: Must use Gemini Live API — we do (native audio, multimodal, function calling)
-- **Google Cloud**: Must host on Google Cloud — we do (Cloud Run, europe-west1)
+- **Google Cloud**: Must host on Google Cloud — we do (Cloud Run, with `us-central1` as the repository default and `europe-west1` as the lower-latency Europe demo deployment)
 - **Reproducible**: Must have README + setup instructions — we do
 - **Deployment proof**: Separate recording showing Cloud Run console, logs, health endpoint
 
@@ -610,7 +610,8 @@ What matters:
 Print or screenshot this for the demo.
 
 ```
-URL:     https://souschef-live-504591545979.europe-west1.run.app
+Demo URL:  https://souschef-live-5z4a6smnda-ew.a.run.app
+Judge URL: https://souschef-live-5z4a6smnda-uc.a.run.app
 Model:   gemini-2.5-flash-native-audio-latest
 Voice:   Aoede
 Region:  europe-west1 (Cloud Run)
@@ -654,10 +655,10 @@ Link to `scripts/deploy.sh` in your public GitHub repo. This is an automated `gc
 
 **Option B — Screen recording (stronger, optional):**
 A 1-2 minute recording showing:
-1. Cloud Run console → `souschef-live` service running in `europe-west1`
+1. Cloud Run console → `souschef-live` service running in the region you are demonstrating (`us-central1` or `europe-west1`)
 2. Environment variables configured (GEMINI_API_KEY, MODEL)
 3. Cloud Run logs streaming structured events
-4. Health endpoint: `https://souschef-live-504591545979.europe-west1.run.app/api/health`
+4. Health endpoint: `https://souschef-live-5z4a6smnda-ew.a.run.app/api/health` (or the matching `us-central1` URL if proving the judges deployment)
 
 **In-app proof (passive, no action needed):**
 The session badge in the cooking screen already shows `europe-west1`, RTT latency, and session ID throughout the demo — judges see this without any infrastructure screen-switching.

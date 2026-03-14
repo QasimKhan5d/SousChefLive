@@ -1,7 +1,7 @@
 id: session_timeout
-name: "Session timeout — server enforces time limit"
+name: "Session timeout — server enforces max session age"
 description: >
-  Session exceeds the configured time limit; server closes the
+  Session exceeds the configured maximum age; server closes the
   WebSocket with code 1000 and cleans up session resources.
 tier: [integration, deploy]
 judge_critical: false
@@ -11,7 +11,7 @@ setup:
     response_modalities: [AUDIO]
 
 override_env:
-  SESSION_TIME_LIMIT: "2"
+  SESSION_MAX_AGE: "2"
 
 expected:
   events:

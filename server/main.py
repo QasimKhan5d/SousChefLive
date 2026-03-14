@@ -34,6 +34,7 @@ setup_logging()
 
 MODEL = os.getenv("MODEL", "gemini-2.5-flash-native-audio-latest")
 DEV_MODE = os.getenv("DEV_MODE", "true").lower() == "true"
+DEPLOYMENT_REGION = os.getenv("DEPLOYMENT_REGION", "local")
 
 app = FastAPI(title="SousChef Live")
 
@@ -55,7 +56,12 @@ session_store: dict[str, SessionContext] = {}
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "model": MODEL, "sessions": len(session_store)}
+    return {
+        "status": "ok",
+        "model": MODEL,
+        "sessions": len(session_store),
+        "deployment_region": DEPLOYMENT_REGION,
+    }
 
 
 @app.websocket("/ws")

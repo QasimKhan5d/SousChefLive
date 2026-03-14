@@ -114,13 +114,13 @@ python -m pytest server/tests/integration/test_websocket.py -v -s
 **How to run**:
 ```bash
 # Smoke test (fastest, verifies Gemini API key works)
-source .env && python -m pytest tests/live/test_live_smoke.py -v --timeout=30
+set -a && source .env && set +a && python -m pytest tests/live/test_live_smoke.py -v --timeout=30
 
 # Deployed E2E (requires active Cloud Run deployment)
-source .env && python -m pytest tests/live/test_deployed_e2e.py -v --timeout=90
+set -a && source .env && set +a && python -m pytest tests/live/test_deployed_e2e.py -v --timeout=90
 
 # Full live suite (slow, may have non-deterministic failures)
-source .env && python -m pytest tests/live/ -v --timeout=120
+set -a && source .env && set +a && python -m pytest tests/live/ -v --timeout=120
 ```
 
 **Semantic verification**: After test_deployed_e2e.py, check Cloud Run logs:
@@ -146,13 +146,13 @@ Look for the complete lifecycle: `ws_connect` → `session_created` → `live_co
 
 **How to run**:
 ```bash
-DEPLOYED_URL=https://souschef-live-504591545979.europe-west1.run.app \
+DEPLOYED_URL=https://souschef-live-5z4a6smnda-ew.a.run.app \
   npx playwright test --config tests/browser/playwright.config.js --reporter=list
 ```
 
 **Taking screenshots for manual inspection**:
 ```bash
-DEPLOYED_URL=https://souschef-live-504591545979.europe-west1.run.app \
+DEPLOYED_URL=https://souschef-live-5z4a6smnda-ew.a.run.app \
   npx playwright test --config tests/browser/playwright.config.js \
   --reporter=html --screenshot=on
 npx playwright show-report
@@ -229,19 +229,23 @@ python -m pytest server/tests/unit/ -v
 python -m pytest server/tests/integration/ -v
 
 # 3. Build and deploy
-source .env && bash scripts/deploy.sh
+# Judges / repository default
+set -a && source .env && set +a && bash scripts/deploy.sh
+
+# Europe demo override
+set -a && source .env && set +a && REGION=europe-west1 bash scripts/deploy.sh
 
 # 4. Health check
-curl -s https://souschef-live-504591545979.europe-west1.run.app/api/health | python3 -m json.tool
+curl -s https://souschef-live-5z4a6smnda-ew.a.run.app/api/health | python3 -m json.tool
 
 # 5. Live smoke test (verifies Gemini API key + audio generation)
-source .env && python -m pytest tests/live/test_live_smoke.py -v --timeout=30
+set -a && source .env && set +a && python -m pytest tests/live/test_live_smoke.py -v --timeout=30
 
 # 6. Deployed E2E (verifies full WebSocket lifecycle against production)
-source .env && python -m pytest tests/live/test_deployed_e2e.py -v --timeout=90
+set -a && source .env && set +a && python -m pytest tests/live/test_deployed_e2e.py -v --timeout=90
 
 # 7. Browser tests (verifies UI rendering, screenshots on failure)
-DEPLOYED_URL=https://souschef-live-504591545979.europe-west1.run.app \
+DEPLOYED_URL=https://souschef-live-5z4a6smnda-ew.a.run.app \
   npx playwright test --config tests/browser/playwright.config.js --reporter=list
 
 # 8. Check Cloud Run logs for any errors

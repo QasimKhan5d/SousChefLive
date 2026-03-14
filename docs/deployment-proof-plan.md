@@ -9,7 +9,7 @@ deployment proof recording required by the hackathon.
 
 ### 1. Cloud Run Console Screenshot
 - Service: `souschef-live`
-- Region: `europe-west1`
+- Region: the deployment you are proving (`us-central1` for the repository default / judges URL, or `europe-west1` for the Europe demo URL)
 - Status: green / serving
 - Capture: service overview page showing URL, revision, traffic
 
@@ -22,7 +22,7 @@ deployment proof recording required by the hackathon.
 - Timeout: 3600s
 
 ### 3. Environment Variables (Masked)
-- Show variable names: `GEMINI_API_KEY`, `MODEL`, `SESSION_TIME_LIMIT`, `DEV_MODE`
+- Show variable names: `GEMINI_API_KEY`, `MODEL`, `SESSION_IDLE_TTL`, `SESSION_MAX_AGE`, `DEV_MODE`
 - Mask the API key value
 
 ### 4. Live Logs
@@ -34,7 +34,7 @@ deployment proof recording required by the hackathon.
 - Open deployed URL on phone or browser
 - Grant permissions
 - Brief cooking interaction (30-60 seconds)
-- Show session badge: `europe-west1 | Cloud Run`, RTT, session ID
+- Show session badge: `<deployment-region> | Cloud Run`, RTT, session ID
 
 ### 6. Architecture Diagram
 - Include in repo: `docs/architecture-diagram.png` or reference from `docs/design.md`
@@ -44,7 +44,7 @@ deployment proof recording required by the hackathon.
 
 ## Recording Script
 
-1. Open Cloud Run console → show service running
+1. Open Cloud Run console → show service running in the region you are demonstrating
 2. Click into service → show configuration + env vars
 3. Open Logs Explorer → filter by service
 4. Open deployed URL in new tab
@@ -53,6 +53,10 @@ deployment proof recording required by the hackathon.
 7. Show session badge in app
 
 Total target: 2-3 minutes.
+
+Current live URLs:
+- Judges / repository default (`us-central1`): `https://souschef-live-5z4a6smnda-uc.a.run.app`
+- Europe demo (`europe-west1`): `https://souschef-live-5z4a6smnda-ew.a.run.app`
 
 ---
 

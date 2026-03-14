@@ -9,7 +9,7 @@ import { GeminiLiveClient } from './lib/gemini-live/geminilive.js';
 import { createAudioStreamer, createVideoStreamer, AudioPlayer } from './lib/gemini-live/mediaUtils.js';
 import {
   getState, setState, addTranscript, finishLastTranscript,
-  updateFromServerEvent, startTimerTick, stopTimerTick,
+  updateFromServerEvent, startTimerTick, stopTimerTick, DEFAULT_REGION,
 } from './state.js';
 import { initUI, setupTranscriptToggle, setAnalyserNode } from './ui.js';
 import { debugEvent } from './debug.js';
@@ -30,7 +30,7 @@ const SESSION_RESET_STATE = {
   timers: [],
   transcript: [],
   error: null,
-  sessionInfo: { region: 'europe-west1', rttMs: 0 },
+  sessionInfo: { region: DEFAULT_REGION, rttMs: 0 },
 };
 
 function generateSessionId() {
@@ -168,13 +168,25 @@ function stopSession() {
 }
 
 function startPing() {
-  pingInterval = setInterval(() => {
+  const updateHealth = () => {
     const start = performance.now();
-    fetch('/api/health').then(() => {
+    fetch('/api/health').then(async (resp) => {
+      const body = await resp.json();
       const rtt = Math.round(performance.now() - start);
       const info = getState().sessionInfo;
-      setState({ sessionInfo: { ...info, rttMs: rtt } });
+      setState({
+        sessionInfo: {
+          ...info,
+          rttMs: rtt,
+          region: body.deployment_region || info.region || DEFAULT_REGION,
+        },
+      });
     }).catch(() => {});
+  };
+
+  updateHealth();
+  pingInterval = setInterval(() => {
+    updateHealth();
   }, 5000);
 }
 

@@ -221,7 +221,7 @@ The cook sees a clean, product-grade interface that proves this is a real deploy
 > **So that** I know this is running on real cloud infrastructure.
 
 **Acceptance Criteria**:
-- Small badge visible in UI: "Live Session: europe-west1 | Cloud Run"
+- Small badge visible in UI: "Live Session: <deployment-region> | Cloud Run"
 - Latency indicator: "RTT: ~420ms"
 - Session ID visible (proves real session, not recording)
 - Active timer/event count visible when relevant (for example "Timers: 1 active")
@@ -252,9 +252,9 @@ The system runs on Google Cloud and can be reproduced from the repository.
 
 **Acceptance Criteria**:
 - Dockerfile builds and runs the FastAPI server
-- Deployed to Cloud Run in `europe-west1`
+- Deployed to Cloud Run in a documented region, with `us-central1` as the repository default and `europe-west1` supported as a low-latency demo override
 - WebSocket connections work through Cloud Run
-- Runtime environment variables include `GEMINI_API_KEY`, `MODEL`, `SESSION_TIME_LIMIT`, and `DEV_MODE`
+- Runtime environment variables include `GEMINI_API_KEY`, `MODEL`, `SESSION_IDLE_TTL`, `SESSION_MAX_AGE`, and `DEV_MODE`
 
 ### US-6.2: Automated Deployment Script
 

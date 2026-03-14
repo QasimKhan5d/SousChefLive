@@ -7,6 +7,17 @@
 
 import { debugEvent } from './debug.js';
 
+export function inferRegionFromHost() {
+  const host = globalThis.location?.hostname || '';
+  if (!host) return '--';
+  if (host === 'localhost' || host === '127.0.0.1') return 'local';
+  if (host.endsWith('-uc.a.run.app')) return 'us-central1';
+  if (host.endsWith('-ew.a.run.app')) return 'europe-west1';
+  return '--';
+}
+
+export const DEFAULT_REGION = inferRegionFromHost();
+
 const state = {
   sessionId: '',
   isConnected: false,
@@ -18,7 +29,7 @@ const state = {
   timers: [],
   transcript: [],
   demoSpeed: false,
-  sessionInfo: { region: 'europe-west1', rttMs: 0 },
+  sessionInfo: { region: DEFAULT_REGION, rttMs: 0 },
   error: null,
 };
 

@@ -20,7 +20,7 @@ import websockets
 
 DEPLOYED_URL = os.environ.get(
     "DEPLOYED_URL",
-    "https://souschef-live-504591545979.europe-west1.run.app",
+    "https://souschef-live-5z4a6smnda-uc.a.run.app",
 )
 
 pytestmark = pytest.mark.skipif(

@@ -40,6 +40,7 @@ class TestHealthEndpoint:
             data = resp.json()
             assert data["status"] == "ok"
             assert "model" in data
+            assert "deployment_region" in data
 
 
 class TestWebSocketProtocol:

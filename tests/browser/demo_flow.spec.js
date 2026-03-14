@@ -51,7 +51,7 @@ test.describe('SousChef Live — Demo Flow Visual Verification', () => {
     await screenshot(page, '02-cooking-screen');
 
     // Session badge (region)
-    await expect(page.locator('#badge-region')).toContainText('europe-west1');
+    await expect(page.locator('#badge-region')).toContainText(/us-central1|europe-west1/);
 
     // RTT indicator
     await expect(page.locator('#badge-rtt')).toBeVisible();

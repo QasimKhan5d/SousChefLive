@@ -40,9 +40,10 @@ The product is intentionally designed as a live cooking companion rather than a 
 
 ### Deployment
 
-- Deployed to Google Cloud Run in `europe-west1`
-- Public service URL:
-  - `https://souschef-live-504591545979.europe-west1.run.app`
+- Deployed to Google Cloud Run in two regions:
+  - Judges / repository default (`us-central1`): `https://souschef-live-5z4a6smnda-uc.a.run.app`
+  - Europe demo (`europe-west1`): `https://souschef-live-5z4a6smnda-ew.a.run.app`
+- `scripts/deploy.sh` defaults to `us-central1`; demoers can override with `REGION=europe-west1`
 - Session affinity enabled
 - `min-instances=1`
 - `concurrency=1`
@@ -72,9 +73,9 @@ SousChef Live is differentiated from hands-free recipe readers by three product 
 
 The codebase has passing automated validation across the main testing layers:
 
-- 92 backend tests (unit + integration: memory, session store, tools, prompts, observability, WebSocket lifecycle)
+- 92 backend tests total (77 unit + 15 integration: memory, session store, tools, prompts, observability, WebSocket lifecycle)
 - 40 live API and deployed E2E tests (Gemini Live smoke, deployed WebSocket, session memory reconnect, semantic verification, compression/resumption config, multi-turn stability, vision scenarios, persona guardrails, timer lifecycle, demo flow simulation)
-- 27 Playwright browser tests (landing page, cooking screen, UI elements, glassmorphism, session lifecycle, transcript, demo speed, visual verification)
+- 32 Playwright browser tests (landing page, cooking screen, UI elements, glassmorphism, session lifecycle, transcript, demo speed, visual verification)
 
 This validates:
 
