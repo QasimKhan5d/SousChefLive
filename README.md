@@ -31,6 +31,9 @@ SousChef Live streams your kitchen camera and microphone to a Gemini Live model 
 
 ## Architecture
 
+![architecture-diagram](docs/architecture-diagram.png "Architecture Diagram")
+
+
 ```mermaid
 graph TD
   Cook["Cook with phone / laptop"] --> Browser["Browser UI\nVanilla JS + AudioWorklets"]
