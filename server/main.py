@@ -217,6 +217,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = ""):
                 emit("backend.server", "session_error", severity="ERROR",
                      session_id=session_id,
                      details={"error": str(task.exception())})
+        if session_task in (done or set()) and not explicit_end and not session.ended:
+            emit("backend.server", "gemini_session_ended_unexpectedly",
+                 session_id=session_id, severity="WARNING")
+            try:
+                await websocket.close(code=1011, reason="Gemini session ended")
+            except Exception:
+                pass
     except Exception as e:
         emit("backend.server", "session_error", severity="ERROR",
              session_id=session_id, details={"error": str(e)})

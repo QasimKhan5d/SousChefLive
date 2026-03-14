@@ -270,14 +270,13 @@ class GeminiLive:
 
                         except Exception as e:
                             error_str = str(e)
+                            resumable_error = True
                             if session_context and session_context.resumption_handle:
-                                resumable_error = True
                                 emit("backend.bridge", "upstream_resumable_disconnect",
-                                     details={"error": error_str})
+                                     details={"error": error_str, "has_handle": True})
                             else:
-                                emit("backend.bridge", "live_connect_error",
-                                     severity="ERROR", details={"error": error_str})
-                                await event_queue.put({"type": "error", "error": error_str})
+                                emit("backend.bridge", "upstream_resumable_disconnect",
+                                     details={"error": error_str, "has_handle": False})
                         finally:
                             if not resumable_error:
                                 await event_queue.put(None)
@@ -305,19 +304,17 @@ class GeminiLive:
                                 pass
 
             except Exception as e:
-                if session_context and session_context.resumption_handle:
-                    resumable_error = True
-                    emit("backend.bridge", "upstream_connect_failed_resumable",
-                         details={"error": str(e)})
-                else:
-                    emit("backend.bridge", "live_connect_error",
-                         severity="ERROR", details={"error": str(e)})
-                    raise
+                resumable_error = True
+                emit("backend.bridge", "upstream_connect_failed",
+                     details={"error": str(e),
+                              "has_handle": bool(session_context and session_context.resumption_handle)})
 
             if resumable_error:
                 retry_count += 1
                 if retry_count > MAX_UPSTREAM_RETRIES:
-                    emit("backend.bridge", "upstream_retries_exhausted")
+                    emit("backend.bridge", "upstream_retries_exhausted",
+                         severity="ERROR")
+                    yield {"type": "error", "error": "Gemini session lost after retries — please reconnect"}
                     return
                 delay = min(2 ** retry_count, 8)
                 emit("backend.bridge", "upstream_reconnecting",
