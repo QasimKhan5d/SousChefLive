@@ -105,6 +105,7 @@ python -m pytest server/tests/integration/test_websocket.py -v -s
 |---|---|
 | `test_live_smoke.py` | Direct Gemini API: connect, text input, audio response, transcription |
 | `test_deployed_e2e.py` | Deployed Cloud Run service: health, frontend, WebSocket connect/setup, text turns with audio response, tool calling, transcription, graceful end session |
+| `test_proactive_behavior.py` | Deployed proactive guardrails: `run_id` correlation, 45s idle silence negative control, no post-recipe chatter, safe-prep-image silence, timer milestone proactive speech |
 | `test_demo_flow.py` | Multi-turn demo simulation against real Gemini |
 | `test_timer_lifecycle.py` | Timer tool call and state updates via real API |
 | `test_vision_scenarios.py` | Image input handling |
@@ -119,6 +120,9 @@ set -a && source .env && set +a && python -m pytest tests/live/test_live_smoke.p
 # Deployed E2E (requires active Cloud Run deployment)
 set -a && source .env && set +a && python -m pytest tests/live/test_deployed_e2e.py -v --timeout=90
 
+# Proactive live regression pack
+set -a && source .env && set +a && python -m pytest tests/live/test_proactive_behavior.py -v --timeout=180
+
 # Full live suite (slow, may have non-deterministic failures)
 set -a && source .env && set +a && python -m pytest tests/live/ -v --timeout=120
 ```
@@ -130,6 +134,12 @@ gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.serv
 ```
 
 Look for the complete lifecycle: `ws_connect` → `session_created` → `live_connect_start` → `live_connect_ok` → `audio_out_chunk` → `turn_complete` → `session_ended` (or `session_kept_alive`).
+
+For proactive validation, also look for:
+- `proactive_candidate_created` → `proactive_candidate_sent` for timer milestones
+- zero `proactive_candidate_sent` during the 45-second idle negative-control window
+- `proactive_eval_suppressed_non_issue` or no proactive events when using safe prep fixtures
+- matching frontend `proactive_meta_received` / backend candidate IDs when browser tests are run
 
 ---
 
@@ -143,6 +153,7 @@ Look for the complete lifecycle: `ws_connect` → `session_created` → `live_co
 |---|---|
 | `app.spec.js` | Landing page elements, feature badges, powered-by badge, health API, screen transitions, cooking screen UI elements, live indicator, connection bars, WebSocket session establishment, stop button, demo speed toggle, error banner, transcript toggle |
 | `demo_flow.spec.js` | Visual verification of branding, gradient bg, feature badges, cooking screen proof signals, WebSocket badge updates, demo speed control, UI reset on stop, transcript panel, video element attributes, glassmorphism styling |
+| `proactive.spec.js` | Frontend observability/debug hooks: `server_run_id_received`, `proactive_meta_received`, no unsolicited proactive UI events during silent fake-media sessions |
 
 **How to run**:
 ```bash
@@ -248,6 +259,10 @@ set -a && source .env && set +a && python -m pytest tests/live/test_deployed_e2e
 DEPLOYED_URL=https://souschef-live-5z4a6smnda-ew.a.run.app \
   npx playwright test --config tests/browser/playwright.config.js --reporter=list
 
+# 7b. Browser proactive/debug checks
+DEPLOYED_URL=https://souschef-live-5z4a6smnda-ew.a.run.app \
+  npx playwright test tests/browser/proactive.spec.js --config tests/browser/playwright.config.js --reporter=list
+
 # 8. Check Cloud Run logs for any errors
 gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="souschef-live" AND severity>=ERROR' \
   --project souschef-490112 --limit=10 --freshness=10m --format="value(textPayload)"
@@ -263,10 +278,10 @@ These cannot be verified by automated tests:
 
 1. **Real camera/microphone input** — fake media streams are synthetic
 2. **Voice quality** — does Aoede sound natural? Is latency perceivable?
-3. **Proactive behavior** — does the agent interrupt unprompted when it sees something wrong?
-4. **Vision accuracy** — does the agent correctly identify ingredients, cooking state?
+3. **Final real-kitchen proactivity tuning** — automated tests now cover timer milestones, silence windows, and safe-image suppression, but the last mile is whether live interruptions feel helpful rather than annoying during actual cooking
+4. **Vision quality under real motion/lighting** — automated image fixtures catch regressions, but real countertops, steam, shadows, and hand motion still need human validation
 5. **4-minute demo rehearsal** — timed run-through with garlic butter chicken thighs
-6. **Reconnect UX** — does the reconnecting spinner feel smooth? Does state restore seamlessly?
+6. **Reconnect UX feel** — correctness is automated, but the subjective smoothness of the reconnect spinner and audio continuity still benefits from human eyes/ears
 
 ---
 

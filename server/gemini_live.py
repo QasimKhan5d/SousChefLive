@@ -143,6 +143,10 @@ class GeminiLive:
 
                     async def receive_loop():
                         nonlocal resumable_error
+                        # Accumulate transcription chunks so memory gets
+                        # complete utterances, not per-word fragments.
+                        pending_input_text = ""
+                        pending_output_text = ""
                         try:
                             while True:
                                 async for response in session.receive():
@@ -177,38 +181,53 @@ class GeminiLive:
                                                         await audio_output_callback(part.inline_data.data)
                                                     else:
                                                         audio_output_callback(part.inline_data.data)
+                                                    if session_context:
+                                                        session_context.proactive.record_model_audio()
                                                     emit("backend.bridge", "audio_out_chunk",
                                                          session_id=session_id)
 
                                         if sc.input_transcription:
                                             txt = _clean_transcription(sc.input_transcription.text)
-                                            if session_context and txt:
-                                                session_context.memory.add_turn("cook", txt)
                                             if txt:
+                                                if pending_input_text and not pending_input_text.endswith(" ") and not txt.startswith(" "):
+                                                    pending_input_text += " " + txt
+                                                else:
+                                                    pending_input_text += txt
+                                                if session_context:
+                                                    session_context.proactive.record_input_transcription()
                                                 await event_queue.put({
                                                     "serverContent": {
                                                         "inputTranscription": {
-                                                            "text": txt,
-                                                            "finished": True,
+                                                            "text": pending_input_text,
                                                         }
                                                     }
                                                 })
 
                                         if sc.output_transcription:
                                             txt = _clean_transcription(sc.output_transcription.text)
-                                            if session_context and txt:
-                                                session_context.memory.add_turn("chef", txt)
                                             if txt:
+                                                if pending_output_text and not pending_output_text.endswith(" ") and not txt.startswith(" "):
+                                                    pending_output_text += " " + txt
+                                                else:
+                                                    pending_output_text += txt
                                                 await event_queue.put({
                                                     "serverContent": {
                                                         "outputTranscription": {
-                                                            "text": txt,
-                                                            "finished": True,
+                                                            "text": pending_output_text,
                                                         }
                                                     }
                                                 })
 
                                         if sc.turn_complete:
+                                            if session_context:
+                                                if pending_input_text:
+                                                    session_context.memory.add_turn("cook", pending_input_text)
+                                                if pending_output_text:
+                                                    session_context.memory.add_turn("chef", pending_output_text)
+                                                session_context.proactive.record_turn_complete()
+                                            pending_input_text = ""
+                                            pending_output_text = ""
+
                                             await event_queue.put({"serverContent": {"turnComplete": True}})
                                             emit("backend.bridge", "turn_complete",
                                                  session_id=session_id)
@@ -219,6 +238,11 @@ class GeminiLive:
                                                 )
 
                                         if sc.interrupted:
+                                            if session_context:
+                                                if pending_output_text:
+                                                    session_context.memory.add_turn("chef", pending_output_text)
+                                                session_context.proactive.record_interrupted()
+                                            pending_output_text = ""
                                             await event_queue.put({"serverContent": {"interrupted": True}})
                                             emit("backend.bridge", "interrupt_received",
                                                  session_id=session_id)

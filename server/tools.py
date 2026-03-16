@@ -17,10 +17,11 @@ from server.session_store import (
     VALID_STEPS,
 )
 from server.observability import emit
+from server.proactive import Lane, STEP_GRACE_WINDOW_S, create_candidate
 
 MONITORING_STATUS_MAP = {
     "idle": "Waiting for ingredients",
-    "prep": "Watching knife work",
+    "prep": "Monitoring prep",
     "heat": "Monitoring pan heat",
     "sear_side_1": "Watching sear — side 1",
     "flip": "Monitoring flip",
@@ -28,6 +29,11 @@ MONITORING_STATUS_MAP = {
     "baste": "Monitoring baste",
     "rest": "Resting — hands off",
     "done": "Plating",
+}
+
+STEP_MILESTONE_PROMPTS = {
+    "heat": "SYSTEM: The cook is heating the pan. Give one short reminder to wait for shimmer before adding food.",
+    "rest": "SYSTEM: The protein is resting. Give one short reminder to leave it untouched while juices settle.",
 }
 
 
@@ -51,6 +57,7 @@ async def set_timer(
         effective_seconds=effective,
         started_at=time.time(),
     )
+    session.proactive.mark_timer_started()
 
     async def _timer_task():
         try:
@@ -61,7 +68,17 @@ async def set_timer(
                 f"SYSTEM: Timer '{label}' is at 80%. "
                 f"About {int(effective - prealert_at)} seconds left. Alert the cook now."
             )
-            await text_input_queue.put(prealert_msg)
+            create_candidate(
+                session.proactive,
+                lane=Lane.MILESTONE_NUDGE,
+                trigger_source="timer",
+                reason_code="timer_prealert",
+                prompt_text=prealert_msg,
+                dedupe_key=f"timer_prealert_{timer_id}",
+                allow_during_urgent_only=True,
+                ignore_step_grace=True,
+                ttl_s=max(15.0, effective + 5.0),
+            )
             await send_event({
                 "type": "state_update",
                 **session.to_state_snapshot(),
@@ -78,7 +95,17 @@ async def set_timer(
             expire_msg = (
                 f"SYSTEM: Timer '{label}' has expired. Tell the cook to take action now."
             )
-            await text_input_queue.put(expire_msg)
+            create_candidate(
+                session.proactive,
+                lane=Lane.MILESTONE_NUDGE,
+                trigger_source="timer",
+                reason_code="timer_expired",
+                prompt_text=expire_msg,
+                dedupe_key=f"timer_expire_{timer_id}",
+                allow_during_urgent_only=True,
+                ignore_step_grace=True,
+                ttl_s=max(15.0, effective + 5.0),
+            )
             await send_event({
                 "type": "state_update",
                 **session.to_state_snapshot(),
@@ -133,9 +160,25 @@ async def update_cooking_step(
             "valid_steps": VALID_STEPS,
         }
 
+    old_step = session.current_step
     session.current_step = step_name
     session.monitoring_status = MONITORING_STATUS_MAP.get(step_name, step_name)
     session.touch()
+
+    if step_name != old_step:
+        session.proactive.increment_step_version(step_name=step_name)
+        prompt_text = STEP_MILESTONE_PROMPTS.get(step_name)
+        if prompt_text:
+            create_candidate(
+                session.proactive,
+                lane=Lane.MILESTONE_NUDGE,
+                trigger_source="step_change",
+                reason_code=f"step_entered_{step_name}",
+                prompt_text=prompt_text,
+                dedupe_key=f"step_{step_name}",
+                allow_during_urgent_only=True,
+                ttl_s=STEP_GRACE_WINDOW_S + 15.0,
+            )
 
     snapshot = session.to_state_snapshot()
 
@@ -162,6 +205,7 @@ async def update_recipe(
 ) -> dict:
     session.recipe_name = recipe_name
     session.touch()
+    session.proactive.mark_recipe_selected()
 
     snapshot = session.to_state_snapshot()
     await send_event({"type": "state_update", **snapshot})

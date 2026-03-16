@@ -7,6 +7,7 @@ so no real Gemini calls are made.
 import asyncio
 import json
 import os
+import time
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 
@@ -14,6 +15,7 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient, ASGITransport
 
 from server.observability import clear_artifact_buffer
+from server.proactive import Lane, PhaseGate, PHASE_STABILITY_S, STEP_GRACE_WINDOW_S, create_candidate
 
 os.environ["LIVE_BACKEND_MODE"] = "fake"
 os.environ["GEMINI_API_KEY"] = "test-key"
@@ -180,6 +182,127 @@ class TestToolExecution:
         events = self._run_with_script(script, "tool_test_timer")
         timer_events = [e for e in events if e.get("name") == "set_timer"]
         assert len(timer_events) >= 1, f"Expected set_timer events, got {events}"
+
+
+class TestProactiveIntegration:
+    def _patch_script(self, script):
+        from harness.fakes.fake_genai import FakeGenaiClient as RealFake
+
+        original_init = RealFake.__init__
+
+        def patched_init(self_inner, **kw):
+            kw["script"] = script
+            original_init(self_inner, **kw)
+
+        return patch.object(RealFake, "__init__", patched_init)
+
+    def _drain_events(self, ws, deadline_s=3.0):
+        events = []
+        deadline = time.time() + deadline_s
+        while time.time() < deadline:
+            try:
+                evt = json.loads(ws.receive_text())
+                events.append(evt)
+            except Exception:
+                break
+        return events
+
+    def _wait_for_session(self, session_id, timeout_s=2.0):
+        deadline = time.time() + timeout_s
+        while time.time() < deadline:
+            session = session_store.get(session_id)
+            if session is not None:
+                return session
+            time.sleep(0.05)
+        raise AssertionError(f"Session {session_id} was not created in time")
+
+    def test_pending_candidate_emits_proactive_meta(self):
+        script = [{"type": "turn_complete", "delay": 2.0}]
+        with self._patch_script(script):
+            client = TestClient(app)
+            with client.websocket_connect("/ws?session_id=proactive_send") as ws:
+                ws.send_text(json.dumps({"setup": {}}))
+
+                session = self._wait_for_session("proactive_send")
+                session.recipe_name = "garlic butter chicken"
+                session.current_step = "heat"
+                session.proactive.current_step = "heat"
+                session.proactive.phase_gate = PhaseGate.BALANCED_ENABLED
+                session.proactive.phase_stable_since = time.time() - PHASE_STABILITY_S - 1
+                session.proactive.last_step_change_at = time.time() - STEP_GRACE_WINDOW_S - 1
+                session.proactive.last_turn_complete_at = time.time() - 2.0
+                session.proactive.last_input_transcription_at = time.time() - 2.0
+
+                candidate = create_candidate(
+                    session.proactive,
+                    lane=Lane.IMPORTANT_NEXT_GAP,
+                    trigger_source="integration_test",
+                    reason_code="pan_cold_with_food",
+                    prompt_text="SYSTEM: Wait for shimmer before adding food.",
+                    dedupe_key="integration_pan_cold",
+                )
+                assert candidate is not None
+
+                deadline = time.time() + 3.0
+                got_meta = None
+                while time.time() < deadline:
+                    evt = json.loads(ws.receive_text())
+                    if evt.get("type") == "proactive_meta":
+                        got_meta = evt
+                        break
+
+                assert got_meta is not None
+                assert got_meta["candidate_id"] == candidate.candidate_id
+                assert got_meta["lane"] == Lane.IMPORTANT_NEXT_GAP.value
+                assert got_meta["reason_code"] == "pan_cold_with_food"
+
+    def test_stale_epoch_candidate_does_not_emit_proactive_meta(self):
+        from server.session_store import SessionContext
+
+        ctx = SessionContext(
+            session_id="stale_proactive",
+            recipe_name="garlic butter chicken",
+            current_step="heat",
+        )
+        ctx.proactive.current_step = "heat"
+        ctx.proactive.phase_gate = PhaseGate.BALANCED_ENABLED
+        ctx.proactive.phase_stable_since = time.time() - PHASE_STABILITY_S - 1
+        ctx.proactive.last_step_change_at = time.time() - STEP_GRACE_WINDOW_S - 1
+        ctx.proactive.last_turn_complete_at = time.time() - 2.0
+        ctx.proactive.last_input_transcription_at = time.time() - 2.0
+        stale = create_candidate(
+            ctx.proactive,
+            lane=Lane.IMPORTANT_NEXT_GAP,
+            trigger_source="integration_test",
+            reason_code="pan_cold_with_food",
+            prompt_text="SYSTEM: stale candidate",
+            dedupe_key="stale_integration_candidate",
+        )
+        assert stale is not None
+        session_store["stale_proactive"] = ctx
+
+        script = [{"type": "turn_complete", "delay": 1.5}]
+        with self._patch_script(script):
+            client = TestClient(app)
+            with client.websocket_connect("/ws?session_id=stale_proactive") as ws:
+                ws.send_text(json.dumps({"setup": {}}))
+                time.sleep(2.5)
+                ws.close()
+
+        from server.observability import get_artifact_buffer
+
+        expired = [
+            e for e in get_artifact_buffer()
+            if e.get("event_type") == "proactive_candidate_expired"
+            and e.get("details", {}).get("terminal_reason") == "stale_epoch"
+        ]
+        sent = [
+            e for e in get_artifact_buffer()
+            if e.get("event_type") == "proactive_candidate_sent"
+            and e.get("details", {}).get("dedupe_key") == "stale_integration_candidate"
+        ]
+        assert len(expired) >= 1
+        assert sent == []
 
 
 class TestReconnectPrimer:

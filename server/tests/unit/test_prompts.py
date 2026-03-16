@@ -19,6 +19,16 @@ class TestSystemInstruction:
     def test_intervention_rules(self):
         assert "interrupt" in SYSTEM_INSTRUCTION.lower()
 
+    def test_knife_grip_safety_instruction(self):
+        assert "curl" in SYSTEM_INSTRUCTION.lower()
+        assert "finger" in SYSTEM_INSTRUCTION.lower()
+
+    def test_substitution_instruction(self):
+        assert "substitute" in SYSTEM_INSTRUCTION.lower()
+
+    def test_recipe_tool_called_immediately(self):
+        assert "SAME turn" in SYSTEM_INSTRUCTION or "same turn" in SYSTEM_INSTRUCTION
+
     def test_under_token_budget(self):
         # Rough estimate: ~4 chars per token
         approx_tokens = len(SYSTEM_INSTRUCTION) / 4

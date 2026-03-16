@@ -65,23 +65,24 @@ class TestSetTimer:
         session.timers[result["timer_id"]].task.cancel()
 
     @pytest.mark.asyncio
-    async def test_timer_alerts_fire(self, session, text_queue, events):
+    async def test_timer_alerts_create_candidates(self, session, text_queue, events):
         captured, send_event = events
         session.demo_speed = True
         result = await set_timer(
             10, "quick",
             session=session, text_input_queue=text_queue, send_event=send_event,
         )
-        # effective_seconds = 1 (10 / 10)
         assert result["effective_seconds"] == 1
         await asyncio.sleep(1.5)
 
-        messages = []
-        while not text_queue.empty():
-            messages.append(await text_queue.get())
+        from server.observability import get_artifact_buffer
+        obs = get_artifact_buffer()
+        prealert_events = [e for e in obs if e["event_type"] == "timer_prealert_fired"]
+        expired_events = [e for e in obs if e["event_type"] == "timer_expired"]
+        assert len(prealert_events) >= 1
+        assert len(expired_events) >= 1
 
-        assert any("80%" in m for m in messages)
-        assert any("expired" in m for m in messages)
+        assert text_queue.empty(), "Timer should not write directly to text_input_queue anymore"
 
 
 class TestUpdateCookingStep:
@@ -90,9 +91,26 @@ class TestUpdateCookingStep:
         captured, send_event = events
         result = await update_cooking_step("prep", session=session, send_event=send_event)
         assert session.current_step == "prep"
-        assert "Watching knife work" in session.monitoring_status
+        assert "Monitoring prep" in session.monitoring_status
         assert len(captured) == 1
         assert captured[0]["type"] == "state_update"
+
+    @pytest.mark.asyncio
+    async def test_heat_step_creates_milestone_candidate(self, session, events):
+        captured, send_event = events
+        session.recipe_name = "garlic butter chicken"
+        await update_cooking_step("prep", session=session, send_event=send_event)
+        result = await update_cooking_step("heat", session=session, send_event=send_event)
+        assert session.current_step == "heat"
+
+        from server.observability import get_artifact_buffer
+        obs = get_artifact_buffer()
+        created = [
+            e for e in obs
+            if e["event_type"] == "proactive_candidate_created"
+            and e["details"]["reason_code"] == "step_entered_heat"
+        ]
+        assert len(created) == 1
 
     @pytest.mark.asyncio
     async def test_invalid_backward(self, session, events):

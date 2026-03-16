@@ -14,6 +14,7 @@ from typing import Any
 
 from server.memory import SessionMemory
 from server.observability import emit
+from server.proactive import ProactiveState, ProactiveDispatcher
 
 VALID_STEPS = [
     "idle", "prep", "heat", "sear_side_1", "flip",
@@ -58,10 +59,22 @@ class SessionContext:
     demo_speed: bool = False
     timers: dict[str, TimerRecord] = field(default_factory=dict)
     memory: SessionMemory = field(default_factory=SessionMemory)
+    proactive: ProactiveState = field(default_factory=ProactiveState)
+    _dispatcher: ProactiveDispatcher | None = field(default=None, repr=False)
     resumption_handle: str | None = None
     started_at: float = field(default_factory=time.time)
     last_seen_at: float = field(default_factory=time.time)
     ended: bool = False
+
+    def __post_init__(self) -> None:
+        self.proactive.session_id = self.session_id
+        self.proactive.current_step = self.current_step
+
+    @property
+    def dispatcher(self) -> ProactiveDispatcher:
+        if self._dispatcher is None:
+            self._dispatcher = ProactiveDispatcher(self.session_id)
+        return self._dispatcher
 
     def touch(self) -> None:
         self.last_seen_at = time.time()

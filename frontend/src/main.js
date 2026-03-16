@@ -50,27 +50,67 @@ async function startSession() {
 
   client = new GeminiLiveClient();
 
+  let _hadUserInputThisTurn = false;
+  let _unsolicitedTurnActive = false;
+  let _pendingProactiveMeta = null;
+  let _currentProactiveMeta = null;
+
+  client.onProactiveMeta = (meta) => {
+    _pendingProactiveMeta = meta;
+  };
+
   client.onAudioData = (data) => {
+    const wasSpeaking = getState().isAgentSpeaking;
     setState({ isAgentSpeaking: true });
     audioPlayer.play(data);
+    if (!wasSpeaking && !_hadUserInputThisTurn) {
+      _unsolicitedTurnActive = true;
+      _currentProactiveMeta = _pendingProactiveMeta;
+      debugEvent('proactive', 'unsolicited_turn_started', {
+        candidate_id: _currentProactiveMeta?.candidate_id || null,
+        lane: _currentProactiveMeta?.lane || null,
+        trigger_source: _currentProactiveMeta?.trigger_source || null,
+        reason_code: _currentProactiveMeta?.reason_code || null,
+      });
+    }
   };
 
   client.onTranscriptInput = (text) => {
-    addTranscript('cook', text);
+    _hadUserInputThisTurn = true;
+    addTranscript('cook', text, { replace: true });
   };
 
   client.onTranscriptOutput = (text) => {
-    addTranscript('chef', text);
+    addTranscript('chef', text, { replace: true });
   };
 
   client.onInterrupt = () => {
     audioPlayer.interrupt();
     setState({ isAgentSpeaking: false });
+    if (_unsolicitedTurnActive) {
+      debugEvent('proactive', 'barge_in_detected', {
+        candidate_id: _currentProactiveMeta?.candidate_id || null,
+      });
+    }
+    _unsolicitedTurnActive = false;
+    _currentProactiveMeta = null;
+    _pendingProactiveMeta = null;
   };
 
   client.onTurnComplete = () => {
     setState({ isAgentSpeaking: false });
+    finishLastTranscript('cook');
     finishLastTranscript('chef');
+    if (_unsolicitedTurnActive) {
+      debugEvent('proactive', 'unsolicited_turn_completed', {
+        candidate_id: _currentProactiveMeta?.candidate_id || null,
+        lane: _currentProactiveMeta?.lane || null,
+      });
+    }
+    _hadUserInputThisTurn = false;
+    _unsolicitedTurnActive = false;
+    _currentProactiveMeta = null;
+    _pendingProactiveMeta = null;
   };
 
   client.onToolCall = (msg) => {

@@ -27,7 +27,9 @@ from server.session_store import (
 )
 from server.tools import register_session_tools
 from server.prompts import SYSTEM_INSTRUCTION, build_tool_declarations
-from server.observability import emit, setup_logging
+from server.observability import emit, setup_logging, get_run_id
+from server.proactive import PROACTIVE_ENABLED
+from server.passive_eval import passive_eval_loop, PASSIVE_EVAL_ENABLED
 
 load_dotenv(override=True)
 setup_logging()
@@ -85,6 +87,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = ""):
              session_id=session_id, details={"error": str(e)})
 
     session = get_or_create_session(session_store, session_id)
+    epoch = session.proactive.increment_epoch()
+    emit("backend.server", "connection_epoch_incremented", session_id=session_id,
+         details={"epoch": epoch})
+
     is_reconnect = (
         session.recipe_name
         or session.current_step != "idle"
@@ -134,7 +140,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = ""):
         except Exception:
             pass
 
+    session.dispatcher.rebind(text_input_queue, send_event)
     register_session_tools(gemini, session, text_input_queue, send_event)
+
+    try:
+        await websocket.send_json({"type": "run_id", "run_id": get_run_id()})
+    except Exception:
+        pass
 
     # If reconnecting with existing session, prime the model with context
     if is_reconnect:
@@ -165,6 +177,8 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = ""):
                 payload = json.loads(message["text"])
                 if payload.get("type") == "image":
                     image_data = base64.b64decode(payload["data"])
+                    session.proactive.latest_frame = image_data
+                    session.proactive.latest_frame_at = time.time()
                     if video_input_queue.full():
                         try:
                             video_input_queue.get_nowait()
@@ -203,8 +217,32 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = ""):
             if event:
                 await send_event(event)
 
+    async def proactive_coordinator_loop():
+        """Periodically attempt to release pending proactive candidates."""
+        if not PROACTIVE_ENABLED:
+            return
+        try:
+            while True:
+                await asyncio.sleep(0.25)
+                session.proactive.refresh_activity_flags()
+                session.proactive.update_phase_gate(
+                    session.current_step,
+                    has_recipe=bool(session.recipe_name),
+                    has_timer=bool(session.timers),
+                )
+                await session.dispatcher.try_release_pending(session.proactive)
+        except asyncio.CancelledError:
+            pass
+
+    eval_task = asyncio.create_task(passive_eval_loop(
+        session_id=session_id,
+        api_key=api_key,
+        get_session=lambda: session_store.get(session_id),
+    )) if PASSIVE_EVAL_ENABLED and PROACTIVE_ENABLED else None
+
     client_task = asyncio.create_task(receive_from_client())
     session_task = asyncio.create_task(run_session())
+    coordinator_task = asyncio.create_task(proactive_coordinator_loop())
     try:
         done, pending = await asyncio.wait(
             [client_task, session_task],
@@ -234,16 +272,19 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = ""):
         emit("backend.server", "session_error", severity="ERROR",
              session_id=session_id, details={"error": str(e)})
     finally:
+        coordinator_task.cancel()
         client_task.cancel()
         session_task.cancel()
-        try:
-            await client_task
-        except (asyncio.CancelledError, Exception):
-            pass
-        try:
-            await session_task
-        except (asyncio.CancelledError, Exception):
-            pass
+        if eval_task:
+            eval_task.cancel()
+        tasks_to_await = [coordinator_task, client_task, session_task]
+        if eval_task:
+            tasks_to_await.append(eval_task)
+        for t in tasks_to_await:
+            try:
+                await t
+            except (asyncio.CancelledError, Exception):
+                pass
 
         if explicit_end or session.ended:
             cancel_session_timers(session)

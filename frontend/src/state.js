@@ -55,22 +55,69 @@ export function setState(partial) {
   _notify();
 }
 
-export function addTranscript(role, text) {
+/**
+ * Add or update a transcript entry.
+ *
+ * @param {string}  role              - 'cook' or 'chef'
+ * @param {string}  text              - the transcription text
+ * @param {object}  [opts]
+ * @param {boolean} [opts.replace]    - if true, replace the text of the last
+ *   unfinished entry of the same role instead of appending.  Use for input
+ *   transcription where Gemini sends the accumulated (refined) text each time.
+ */
+export function addTranscript(role, text, { replace = false } = {}) {
   if (!text || !text.trim()) return;
-  const last = state.transcript[state.transcript.length - 1];
-  if (last && last.role === role && !last.finished) {
-    last.text += text;
+
+  // Scan backwards for the last unfinished entry of the *same* role.
+  // This prevents interleaved input/output transcription events from
+  // fragmenting one response into many bubbles.
+  let target = null;
+  for (let i = state.transcript.length - 1; i >= 0; i--) {
+    if (state.transcript[i].role === role) {
+      if (!state.transcript[i].finished) target = state.transcript[i];
+      break; // stop at the most recent entry of this role regardless
+    }
+  }
+
+  if (target) {
+    if (replace) {
+      target.text = text;
+    } else {
+      const needsSpace =
+        target.text.length > 0 &&
+        !target.text.endsWith(' ') &&
+        !text.startsWith(' ');
+      target.text += (needsSpace ? ' ' : '') + text;
+    }
   } else {
     state.transcript.push({ role, text, finished: false, ts: Date.now() });
   }
+
   if (state.transcript.length > 50) state.transcript.shift();
   _notify();
-  debugEvent('state', 'transcript_updated', { role });
+  const last = state.transcript[state.transcript.length - 1];
+  debugEvent('state', 'transcript_updated', {
+    role,
+    replace,
+    finished: false,
+    text,
+    transcript_count: state.transcript.length,
+    last_role: last?.role || null,
+  });
 }
 
 export function finishLastTranscript(role) {
-  const last = state.transcript[state.transcript.length - 1];
-  if (last && last.role === role) last.finished = true;
+  for (let i = state.transcript.length - 1; i >= 0; i--) {
+    if (state.transcript[i].role === role) {
+      state.transcript[i].finished = true;
+      debugEvent('state', 'transcript_finished', {
+        role,
+        text: state.transcript[i].text,
+        transcript_count: state.transcript.length,
+      });
+      break;
+    }
+  }
   _notify();
 }
 
